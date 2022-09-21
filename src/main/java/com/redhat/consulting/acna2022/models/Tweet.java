@@ -21,6 +21,7 @@ public class Tweet {
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date timestamp;
 	
+	private String handle;
 	
 	public Tweet() {
 		super();
@@ -31,5 +32,6 @@ public class Tweet {
 		this.id = UUID.randomUUID();
 		this.content = tweet.getText();
 		this.timestamp = tweet.getCreatedAt();
+		this.handle = tweet.getUser().getScreenName();
 	}
 }

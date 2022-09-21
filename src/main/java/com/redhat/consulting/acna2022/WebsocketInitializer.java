@@ -15,6 +15,7 @@ import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 import javax.inject.Named;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 @ApplicationScoped
 public class WebsocketInitializer {
@@ -42,7 +43,7 @@ public class WebsocketInitializer {
 	
 	@Produces
 	@Named("sharedProps")
-	public ConcurrentHashMap<String, String> sharedProperties() {
+	public ConcurrentMap<String, String> sharedProperties() {
 		var sharedProps = new ConcurrentHashMap<String, String>();
 		
 		sharedProps.put("searchTerms", "#ACNA2022,@ApacheCamel,@ApacheCon,@TheASF,@InfoSec812,@ApacheGroovy,@QuarkusIO");
