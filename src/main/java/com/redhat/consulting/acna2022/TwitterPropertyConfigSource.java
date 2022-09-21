@@ -25,8 +25,7 @@ import static java.lang.System.getenv;
  */
 public class TwitterPropertyConfigSource implements ConfigSource {
 	
-	@Inject
-	Logger log;
+	private static final Logger LOG = Logger.getLogger(TwitterPropertyConfigSource.class);
 	
 	private final Map<String,String> props = new HashMap<>();
 	
@@ -42,7 +41,7 @@ public class TwitterPropertyConfigSource implements ConfigSource {
 				System.setProperty(key, val);
 			}
 		} catch (Exception e) {
-			this.log.warn(e.getLocalizedMessage(), e);
+			LOG.warn(e.getLocalizedMessage(), e);
 		}
 	}
 	
