@@ -1,5 +1,6 @@
 package com.redhat.consulting.acna2022;
 
+import com.redhat.consulting.acna2022.models.Tweet;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.Message;
 import io.vertx.ext.bridge.PermittedOptions;
@@ -25,10 +26,6 @@ public class WebsocketInitializer {
 	@Inject
 	Vertx vertx;
 	
-	@Inject
-	@TwitterConfig
-	Event<ConcurrentHashMap<String, String>> sharedPropsEvent;
-	
 	public void initVertx(@Observes Router router) {
 		LOG.info("Adding EventBus websocket handler");
 		
@@ -38,18 +35,6 @@ public class WebsocketInitializer {
 				                                        .addInboundPermitted(permitted)
 				                                        .addOutboundPermitted(permitted);
 		var sockJSHandler = SockJSHandler.create(vertx);
-		router.route("/eventbus/.*").subRouter(sockJSHandler.bridge(sockJsOpts));
-	}
-	
-	@Produces
-	@Named("sharedProps")
-	public ConcurrentMap<String, String> sharedProperties() {
-		var sharedProps = new ConcurrentHashMap<String, String>();
-		
-		sharedProps.put("searchTerms", "#ACNA2022,@ApacheCamel,@ApacheCon,@TheASF,@InfoSec812,@ApacheGroovy,@QuarkusIO");
-		sharedProps.put("twitterSearchDelay", "5s");
-		sharedPropsEvent.fire(sharedProps);
-		
-		return sharedProps;
+		router.route("/eventbus/*").subRouter(sockJSHandler.bridge(sockJsOpts));
 	}
 }

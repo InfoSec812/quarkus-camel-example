@@ -2,9 +2,9 @@
   <q-layout view="lHh Lpr lFf">
     <q-header elevated>
       <q-toolbar>
-
+        <img src="/images/RedHatFedora.png" class="logo" />
         <q-toolbar-title>
-          Camel Example
+          Camel Quarkus Example
         </q-toolbar-title>
       </q-toolbar>
     </q-header>
@@ -17,3 +17,11 @@
 
 <script setup lang="ts">
 </script>
+<style lang="sass">
+.q-toolbar
+  background-color: black
+
+.logo
+  width: 3rem
+  height: 3rem
+</style>

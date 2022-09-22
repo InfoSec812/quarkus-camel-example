@@ -1,17 +1,35 @@
 <template>
-  <q-page class="row items-center justify-evenly">
+  <q-page class="q-pa-md row items-start q-gutter-md">
+    <transition v-for="tweet in tweets"
+                :key="tweet.id" appear
+                enter-active-class="animated zoomInUp"
+                leave-active-class="animated zoomOutDown"
+                duration="800">
+      <q-card>
+        <q-card-section class="handle">
+          <a :href="tweet.url">
+            <img src="/icons/twitter.svg" target="_blank" class="birdIcon">
+          </a>
+          {{ tweet.handle }}
+        </q-card-section>
+        <q-card-section><span v-html="tweet.content"></span></q-card-section>
+      </q-card>
+    </transition>
   </q-page>
 </template>
 
 <script setup lang="ts">
-import EventBus from '@vertx/eventbus-bridge-client.js'
 import { ref } from 'vue'
-import { useQuasar } from "quasar";
+import { useQuasar } from 'quasar';
+
+import EventBus from '@vertx/eventbus-bridge-client.js';
+
+const MAX_CACHED_TWEETS = 5;
 
 const $q = useQuasar();
 
 interface Tweet {
-  text: string;
+  content: string;
   timestamp: bigint;
   handle: string;
   url: string
@@ -29,18 +47,38 @@ const ebOptions = {
   vertxbus_randomization_factor: 0.5 // Randomization factor between 0 and 1
 };
 
-const eb = new EventBus(`${loc.protocol}//${loc.host}:${loc.port}/eventbus/`, ebOptions);
+const eb = new EventBus(`${loc.origin}/eventbus/`, ebOptions);
 
 eb.onopen = () => {
-  eb.registerHandler('com.redhat.consulting.tweet', (error: Error, message: unknown) => {
+  eb.registerHandler('com.redhat.consulting.tweet', (error: Error, message: any) => {
     if (error) {
       $q.notify({ message: 'Error receiving message from eventbus bridge', type: 'warning' });
     } else {
-      tweets.value.push(message.body);
+      if (tweets.value.length >= MAX_CACHED_TWEETS) {
+        tweets.value.pop();
+      }
+      tweets.value.splice(0, 0, JSON.parse(message.body));
     }
   })
 }
 
 eb.enableReconnect(true);
-
 </script>
+<style lang="sass">
+.q-card
+  width: 90%
+  margin-left: auto
+  margin-right: auto
+  margin-top: 0.25rem
+  margin-bottom: 0.25rem
+
+.handle
+  background-color: $accent
+  color: white
+  font-weight: 800
+
+.birdIcon
+  width: 1.25rem
+  height: 1.25rem
+  margin: auto
+</style>
