@@ -22,6 +22,8 @@ import javax.inject.Inject;
 import javax.json.bind.JsonbBuilder;
 import java.util.concurrent.atomic.AtomicLong;
 
+import static java.lang.String.format;
+
 @ApplicationScoped
 public class TwitterIngestRoute extends RouteBuilder {
 	
@@ -40,7 +42,7 @@ public class TwitterIngestRoute extends RouteBuilder {
 	String consumerSecret;
 	
 //	String searchTerms = "#ACNA2022,@ApacheCamel,@ApacheCon,@TheASF,@InfoSec812,@ApacheGroovy,@QuarkusIO";
-	String searchTerms = "#TrumpIsGuilty";
+	String searchTerms = "Trump";
 	
 	String twitterPollDelay = "5s";
 	
@@ -65,19 +67,26 @@ public class TwitterIngestRoute extends RouteBuilder {
 		
 		JsonbDataFormat jsonbDataFormat = new JsonbDataFormat();
 		
-		fromF("twitter-search:%s?delay=%s&sinceId=%d", searchTerms, twitterPollDelay, lastId.get())
+		fromF("twitter-search:%s?greedy=true&type=direct&delay=%s&sinceId=%d", searchTerms, twitterPollDelay, lastId.get())
 				.process(e -> {
-					Status s = e.getIn().getBody(Status.class);
-					Tweet t = new Tweet(s);
-					lastId.set(s.getId());
-					e.getIn().setBody(t);
+					var s = e.getIn().getBody(Status.class);
+					e.getIn().setHeader("tid", s.getId());
+					e.getIn().setHeader("content", s.getText());
+					e.getIn().setHeader("handle", s.getUser().getScreenName());
+					e.getIn().setHeader("url", format("https://twitter.com/%s/status/%s", s.getUser().getScreenName(), s.getId()));
+					e.getIn().setBody("INSERT INTO tweets (id, content, handle, url) VALUES (:?tid, :?content, :?handle, :?url)");
 				})
-				.to("jpa://com.redhat.consulting.acna2022.models.Tweet")
-				.process(e -> {
-					var tweet = e.getIn().getBody(Tweet.class);
-					var json = JsonbBuilder.create().toJson(tweet);
-					e.getIn().setBody(json);
-				})
+				.to("jdbc:default?useHeadersAsParameters=true")
+				.to("log:debugQuery")
+				.delay(simple("${random(100,1000)}"))
+				.setBody(simple("""
+            {
+              "id": "${header.tid}",
+              "url": "${header.url}",
+              "content": "${header.content}",
+              "handle": "${header.handle}"
+            }
+						"""))
 				.to("vertx:com.redhat.consulting.tweet?pubSub=true")
 				.to("log:TwitterFeedRoute");
 	}

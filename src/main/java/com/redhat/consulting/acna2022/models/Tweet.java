@@ -2,6 +2,7 @@ package com.redhat.consulting.acna2022.models;
 
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
+import org.hibernate.annotations.CreationTimestamp;
 import twitter4j.Status;
 import twitter4j.TweetEntity;
 
@@ -53,6 +54,7 @@ public class Tweet extends PanacheEntityBase {
 	private String content;
 	
 	@Temporal(TemporalType.TIMESTAMP)
+	@Column(columnDefinition = "timestamp with time zone not null default now()")
 	private Date timestamp;
 	
 	private String handle;
@@ -89,7 +91,6 @@ public class Tweet extends PanacheEntityBase {
 		this.id = tweet.getId();
 		this.url = String.format("https://twitter.com/%s/status/%s", tweet.getUser().getScreenName(), tweet.getId());
 		this.content = tweet.getText();
-		this.timestamp = tweet.getCreatedAt();
 		this.handle = tweet.getUser().getScreenName();
 	}
 }
