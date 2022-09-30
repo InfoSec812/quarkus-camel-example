@@ -29,18 +29,6 @@ public class TwitterIngestRoute extends RouteBuilder {
 	
 	private static final Logger LOG = Logger.getLogger(TwitterIngestRoute.class);
 	
-	@ConfigProperty(name = "twitter.access.token", defaultValue = "")
-	String accessToken;
-	
-	@ConfigProperty(name = "twitter.access.secret", defaultValue = "")
-	String accessTokenSecret;
-	
-	@ConfigProperty(name = "twitter.consumer.key", defaultValue = "")
-	String consumerKey;
-	
-	@ConfigProperty(name = "twitter.consumer.secret", defaultValue = "")
-	String consumerSecret;
-	
 //	String searchTerms = "#ACNA2022,@ApacheCamel,@ApacheCon,@TheASF,@InfoSec812,@ApacheGroovy,@QuarkusIO";
 	String searchTerms = "Trump";
 	
@@ -57,15 +45,6 @@ public class TwitterIngestRoute extends RouteBuilder {
 	CamelContext context;
 	
 	public void configure() throws Exception {
-		
-		TwitterSearchComponent twitterSearchComponent = context.getComponent("twitter-search", TwitterSearchComponent.class);
-		
-		twitterSearchComponent.setAccessToken(accessToken);
-		twitterSearchComponent.setAccessTokenSecret(accessTokenSecret);
-		twitterSearchComponent.setConsumerKey(consumerKey);
-		twitterSearchComponent.setConsumerSecret(consumerSecret);
-		
-		JsonbDataFormat jsonbDataFormat = new JsonbDataFormat();
 		
 		fromF("twitter-search:%s?greedy=true&type=direct&delay=%s&sinceId=%d", searchTerms, twitterPollDelay, lastId.get())
 				.process(e -> {
