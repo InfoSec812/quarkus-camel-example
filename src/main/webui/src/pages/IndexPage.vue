@@ -1,12 +1,13 @@
 <template>
   <q-page class="q-pa-md column items-start q-gutter-md">
-    <div class="row">
-      <transition v-for="tweet in tweets"
+    <div class="row tweet-cards">
+      <transition v-for="(tweet, index) in tweets"
                   :key="tweet.id" appear
-                  enter-active-class="animated zoomInLeft"
-                  leave-active-class="animated zoomOutRight"
-                  duration="800">
-        <q-card>
+                  enter-active-class="animated slideInLeft"
+                  leave-active-class="animated slideOutRight"
+                  mode="in-out"
+                  :duration="800" >
+        <q-card v-if="isVisible(index)" :key="tweet.id">
           <q-card-section class="handle">
             <a :href="tweet.url">
               <img src="/icons/twitter.svg" target="_blank" class="birdIcon">
@@ -17,7 +18,7 @@
         </q-card>
       </transition>
     </div>
-    <div class="row" style="width: 100%; height: 100%;">
+    <div class="row" style="width: 100%; height: 100%; overflow: hidden;">
       <Line :chart-data="chartData" :chart-options="chartOptions" :styles="chartStyles"
             chart-id="volume" :width="1400" :height="400" dataset-id-key="label" />
     </div>
@@ -51,7 +52,7 @@ ChartJS.register(
   CategoryScale
 )
 
-const MAX_CACHED_TWEETS = 10;
+const MAX_CACHED_TWEETS = 9;
 
 const $q = useQuasar();
 
@@ -60,11 +61,16 @@ const chartStyles = ref({
   width: '100%'
 })
 
+const isVisible = (index: number): boolean => {
+  return index < MAX_CACHED_TWEETS;
+}
+
 interface Tweet {
   content: string;
   timestamp: bigint;
   handle: string;
-  url: string
+  url: string;
+  id: string;
 }
 
 const tweets = ref<Tweet[]>([]);
@@ -95,7 +101,7 @@ eb.onopen = () => {
     if (error) {
       $q.notify({ message: 'Error receiving message from eventbus bridge', type: 'warning' });
     } else {
-      while (tweets.value.length >= MAX_CACHED_TWEETS) {
+      while (tweets.value.length > MAX_CACHED_TWEETS) {
         tweets.value.pop();
       }
       tweets.value.splice(0, 0, JSON.parse(message.body));
@@ -105,7 +111,7 @@ eb.onopen = () => {
     if (error) {
       $q.notify({ message: 'Error receiving message from eventbus bridge', type: 'warning' });
     } else {
-      while (chartData.value.labels.length > MAX_CACHED_TWEETS) {
+      while (chartData.value.labels.length > (MAX_CACHED_TWEETS * 2)) {
         chartData.value.labels.splice(0, 1);
         chartData.value.datasets[0].data.splice(0, 1);
       }
@@ -123,17 +129,25 @@ eb.enableReconnect(true);
 <style lang="sass">
 .q-card
   width: 10.55rem
+  height: 10rem
   font-size: 0.5rem
   margin-left: auto
   margin-right: auto
   margin-top: 0.25rem
   margin-bottom: 0.25rem
 
+.tweet-cards
+  height: 11rem
+  overflow: hidden
+  overflow-x: hidden
+  overflow-y: clip
+  width: 110%
+
 .handle
   background-color: $accent
   color: white
   font-weight: 800
-  font-size: 0.8rem
+  font-size: 0.75rem
 
 .birdIcon
   width: 1.25rem

@@ -1,25 +1,16 @@
 package com.redhat.consulting.acna2022;
 
-import com.redhat.consulting.acna2022.models.Tweet;
 import io.vertx.core.Vertx;
-import io.vertx.core.buffer.Buffer;
-import io.vertx.core.json.JsonObject;
 import org.apache.camel.CamelContext;
-import org.apache.camel.RoutesBuilder;
-import org.apache.camel.StreamCache;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.jsonb.JsonbDataFormat;
 import org.apache.camel.component.twitter.search.TwitterSearchComponent;
-import org.apache.camel.converter.stream.InputStreamCache;
-import org.apache.camel.model.RouteDefinition;
-import org.apache.camel.model.dataformat.JsonLibrary;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 import twitter4j.Status;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.json.bind.JsonbBuilder;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static java.lang.String.format;
@@ -67,7 +58,7 @@ public class TwitterIngestRoute extends RouteBuilder {
 		
 		JsonbDataFormat jsonbDataFormat = new JsonbDataFormat();
 		
-		fromF("twitter-search:%s?greedy=true&type=direct&delay=%s&sinceId=%d", searchTerms, twitterPollDelay, lastId.get())
+		fromF("twitter-search:%s?numberOfPages=10&delay=5000&type=direct", searchTerms)
 				.process(e -> {
 					var s = e.getIn().getBody(Status.class);
 					e.getIn().setHeader("tid", s.getId());
