@@ -22,6 +22,39 @@ You can run your application in dev mode that enables live coding using:
 ./mvnw compile quarkus:dev
 ```
 
+## Add Twitter and logging components by uncommenting them in `pom.xml`
+
+```xml
+<!--    <dependency>-->
+<!--      <groupId>org.apache.camel.quarkus</groupId>-->
+<!--      <artifactId>camel-quarkus-twitter</artifactId>-->
+<!--    </dependency>-->
+<!--    <dependency>-->
+<!--      <groupId>org.apache.camel.quarkus</groupId>-->
+<!--      <artifactId>camel-quarkus-log</artifactId>-->
+<!--    </dependency>-->
+```
+
+## Use twitter component in Camel context for `TwitterIngestRoute`
+
+```java
+		fromF("twitter-search:%s?greedy=true&type=direct&delay=%s", searchTerms, twitterPollDelay)
+				.to("log:rawTweet");
+```
+
+## Add twitter credentials to `src/main/resources/application.properties`
+
+```
+camel.component.twitter-search.access-token=xxxxxxxx-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+camel.component.twitter-search.access-token-secret=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+camel.component.twitter-search.consumer-key=xxxxxxxxxxxxxxxxxxxxxxxxx
+camel.component.twitter-search.consumer-secret=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+## Note that since we are already running in Dev mode that as we changed these files the application automatically reloaded our changes. After this most recent change with the Twitter credentials we should start seeing tweets coming through.
+
+
+
 > **_NOTE:_**  Quarkus now ships with a Dev UI, which is available in dev mode only at http://localhost:8080/q/dev/.
 
 ## Packaging and running the application

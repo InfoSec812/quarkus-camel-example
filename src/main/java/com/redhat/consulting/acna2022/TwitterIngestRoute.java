@@ -1,9 +1,12 @@
 package com.redhat.consulting.acna2022;
 
+import io.vertx.core.json.JsonObject;
 import org.apache.camel.builder.RouteBuilder;
 import org.jboss.logging.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
+import java.time.Instant;
+import java.util.LinkedHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static java.lang.String.format;
@@ -22,7 +25,7 @@ public class TwitterIngestRoute extends RouteBuilder {
 	public void configure() throws Exception {
 		
 //		fromF("twitter-search:%s?greedy=true&type=direct&delay=%s", searchTerms, twitterPollDelay)
-//				.to("log:rawTweet");
+//				.to("log:rawTweet")
 //				.process(e -> {
 //					var s = e.getIn().getBody(Status.class);
 //					e.getIn().setHeader("tid", s.getId());
@@ -31,9 +34,8 @@ public class TwitterIngestRoute extends RouteBuilder {
 //					e.getIn().setHeader("url", format("https://twitter.com/%s/status/%s", s.getUser().getScreenName(), s.getId()));
 //					e.getIn().setBody("INSERT INTO tweets (id, content, handle, url) VALUES (:?tid, :?content, :?handle, :?url)");
 //				})
-//				.to("jdbc:default?useHeadersAsParameters=true")
 //				.to("log:debugQuery")
-//				.delay(simple("${random(100,1000)}"))
+//				.to("jdbc:default?useHeadersAsParameters=true")
 //				.setBody(simple("""
 //            {
 //              "id": "${header.tid}",
@@ -44,5 +46,17 @@ public class TwitterIngestRoute extends RouteBuilder {
 //						"""))
 //				.to("vertx:com.redhat.consulting.tweet?pubSub=true")
 //				.to("log:TwitterFeedRoute");
+//
+//		from("timer:aggregate?delay=0&period=10000")
+//				.setBody(constant("SELECT COUNT(1) as count FROM tweets WHERE timestamp >= (now() - interval '10 seconds')"))
+//				.to("jdbc:default?outputType=StreamList")
+//				.split(body())
+//				.process(e -> {
+//					var rs = e.getIn().getBody(LinkedHashMap.class);
+//					var count = (Long)rs.getOrDefault("count", 0);
+//					var json = new JsonObject().put("count", count).put("timestamp", Instant.now().toEpochMilli());
+//					e.getIn().setBody(json.encodePrettily());
+//				})
+//				.to("vertx:com.redhat.consulting.aggregate?pubSub=true");
 	}
 }
